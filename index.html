@@ -16,6 +16,7 @@
             --border-color: #444;
             --resize-bar-color: #555;
             --resize-bar-hover: #777;
+            --danger-color: #e53935;
         }
 
         body {
@@ -28,9 +29,7 @@
             background: var(--bg-color);
             color: var(--text-color);
             overflow: hidden;
-            /* Prevent body scroll on mobile */
             user-select: none;
-            /* Prevent text selection on quick taps */
             -webkit-user-select: none;
         }
 
@@ -45,6 +44,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            z-index: 10;
         }
 
         .fps-selector {
@@ -54,7 +54,8 @@
             gap: 10px;
         }
 
-        .fps-selector button {
+        .fps-selector button,
+        .btn {
             background-color: transparent;
             border: 1px solid var(--border-color);
             color: var(--secondary-text);
@@ -65,10 +66,21 @@
             font-size: 14px;
         }
 
-        .fps-selector button.active {
+        .fps-selector button.active,
+        .btn-primary {
             background-color: var(--accent-color);
             color: white;
             border-color: var(--accent-color);
+        }
+
+        .btn-danger {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
         }
 
         .display-group {
@@ -80,7 +92,6 @@
             margin: 10px 0;
             font-weight: 500;
             font-variant-numeric: tabular-nums;
-            /* Monospaced numbers */
         }
 
         #currentLap {
@@ -121,21 +132,20 @@
         }
 
         /* Custom Scrollbar */
-        .lap-records::-webkit-scrollbar {
-            width: 8px;
+        .lap-records::-webkit-scrollbar,
+        .history-list::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .lap-records::-webkit-scrollbar-track {
-            background: var(--container-bg);
+        .lap-records::-webkit-scrollbar-track,
+        .history-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
         }
 
-        .lap-records::-webkit-scrollbar-thumb {
+        .lap-records::-webkit-scrollbar-thumb,
+        .history-list::-webkit-scrollbar-thumb {
             background: var(--border-color);
-            border-radius: 4px;
-        }
-
-        .lap-records::-webkit-scrollbar-thumb:hover {
-            background: #666;
+            border-radius: 3px;
         }
 
         .lap-record {
@@ -146,10 +156,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .lap-record:last-child {
-            border-bottom: none;
-        }
-
         .resize-bar {
             width: 100%;
             height: 8px;
@@ -157,14 +163,9 @@
             cursor: row-resize;
             margin-top: 10px;
             border-radius: 4px;
-            transition: background-color 0.2s;
         }
 
-        .resize-bar:hover {
-            background-color: var(--resize-bar-hover);
-        }
-
-        /* Touch Zones Visuals (Optional, subtle overlay) */
+        /* Touch Zones Visuals */
         .touch-feedback {
             position: fixed;
             top: 0;
@@ -173,6 +174,7 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.1s;
+            z-index: 5;
         }
 
         .touch-left {
@@ -187,6 +189,73 @@
 
         .active-feedback {
             opacity: 1;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-list {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .history-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--secondary-text);
+        }
+
+        .history-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 5px;
         }
 
         @media (max-width: 600px) {
@@ -209,16 +278,12 @@
 
             .lap-records {
                 max-height: none;
-                /* Let flex grow handle height */
             }
 
             .resize-bar {
                 display: none;
             }
 
-            /* No resize bar on mobile */
-
-            /* Increase button size for touch */
             .fps-selector button {
                 padding: 12px 20px;
                 font-size: 16px;
@@ -244,10 +309,10 @@
         </div>
 
         <div class="instructions">
-            空白鍵 (Space): 開始/停止 | Z 鍵: 分卡 (Split) | R 鍵: 重置 (Reset)
+            空白鍵: 開始/停止 | Z 鍵: 分卡 | R 鍵: 重置
         </div>
         <div class="mobile-hint">
-            左側: 分卡 | 右側: 開始/暫停 | 長按: 重置
+            左側: 分卡 | 右側: 開始/暫停 | 長按: 重置&歷史
         </div>
 
         <div id="lapRecords" class="lap-records"></div>
@@ -257,17 +322,33 @@
     <div id="touchLeft" class="touch-feedback touch-left"></div>
     <div id="touchRight" class="touch-feedback touch-right"></div>
 
+    <!-- History Modal -->
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>歷史紀錄</h3>
+                <button class="btn btn-sm" onclick="closeHistory()">✕</button>
+            </div>
+            <div id="historyList" class="history-list">
+                <!-- Items injected here -->
+            </div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button class="btn btn-primary" onclick="closeHistory()">開始新剪輯</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // System Variables
         let startTime, lapStartTime, totalTime = 0, isRunning = false, lapCount = 0, lapRecords = [];
         let FPS = 24;
-        let accumulatedTime = 0; // Time accumulated from previous sessions if paused
+        let historyData = [];
 
         // DOM Elements
         const $ = id => document.getElementById(id);
         const lapContainer = $('lapRecords');
 
-        // Audio Context for Beep
+        // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -276,7 +357,7 @@
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
             gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
             oscillator.start();
             oscillator.stop(audioCtx.currentTime + 0.1);
@@ -285,35 +366,18 @@
         function formatTime(seconds) {
             const s = Math.floor(seconds);
             const f = Math.round((seconds - s) * FPS);
-            // Handle frame rollover (e.g., if rounding causes frame == FPS)
-            if (f >= FPS) {
-                return `${s + 1} s 00`;
-            }
+            if (f >= FPS) return `${s + 1} s 00`;
             return `${s} s ${f.toString().padStart(2, '0')}`;
         }
 
         function updateDisplay() {
             if (!isRunning) return;
-
             const now = Date.now();
-            const currentRunDuration = (now - lapStartTime) / 1000;
-
-            // Total time is accumulated total + current lap active duration
-            // Actually, logic needs to be robust:
-            // Total Time = (Time since Start) - (Total Pause Duration)
-            // Creating a simple delta approach is easier for display
             const totalDuration = (now - startTime) / 1000;
-
             $('totalTime').textContent = `總計: ${formatTime(totalDuration)}`;
 
-            // Lap time
-            // Lap Start Time needs to be the timestamp when the lap started. 
-            // If we paused, everything shifts.
-            // Let's rely on a simpler model:
-            // We update displays based on StartTime.
-            // When we Split, we reset LapStartTime.
             const lapDuration = (now - lapStartTime) / 1000;
-            $('currentLap').textContent = `第 ${lapCount + 1} 卡 (${formatTime(lapDuration)})`; // Display Current Lap # as +1 (current working one)
+            $('currentLap').textContent = `第 ${lapCount + 1} 卡 (${formatTime(lapDuration)})`;
 
             requestAnimationFrame(updateDisplay);
         }
@@ -326,7 +390,6 @@
              </div>`
             ).join('') + '<div id="anchor"></div>';
 
-            // Auto scroll to bottom
             const anchor = document.getElementById('anchor');
             if (anchor) anchor.scrollIntoView({ block: "end", behavior: "smooth" });
         }
@@ -338,12 +401,9 @@
                 const lapTime = (now - lapStartTime) / 1000;
                 const currentTotalTime = (now - startTime) / 1000;
 
-                // Record the COMPLETED lap (so lapCount is correct)
                 lapRecords.push({ lapNumber: lapCount + 1, lapTime, totalTime: currentTotalTime });
-
                 lapStartTime = now;
                 lapCount++;
-
                 renderLaps();
                 saveState();
             }
@@ -352,36 +412,20 @@
         function toggleTimer() {
             const now = Date.now();
             if (isRunning) {
-                // Stop
                 isRunning = false;
-                // Record the pause duration logic or just save the state
-                // For simple logic: calculate exactly how much time passed and save it
-                // But here, we just flag isRunning false. 
-                // NOTE: The original logic was "Stop = Cut". 
-                // Requested logic: Space = Toggle (Pause/Resume), Z = Cut.
-
-                // When pausing, we need to know "at what time" we paused to offset when resuming.
-                // We'll trust the native clock diff method for simplicity in this version,
-                // BUT we need to handle "resuming" correctly.
-                // Let's store 'accumulatedTime' ? 
-                // No, the easiest way to handle Pause/Resume with Date.now() is:
-                // Shift startTime and lapStartTime forward by the duration of the pause.
                 localStorage.setItem('pauseStart', now);
                 saveState();
                 $('currentLap').textContent = $('currentLap').textContent.replace('...', ' (暫停)');
             } else {
-                // Start / Resume
                 const pauseStart = localStorage.getItem('pauseStart');
                 if (pauseStart && startTime) {
                     const pauseDuration = now - parseInt(pauseStart);
                     startTime += pauseDuration;
                     lapStartTime += pauseDuration;
                 } else if (!startTime) {
-                    // First Start
                     startTime = now;
                     lapStartTime = now;
                 }
-
                 localStorage.removeItem('pauseStart');
                 isRunning = true;
                 updateDisplay();
@@ -390,18 +434,26 @@
         }
 
         function resetTimer() {
-            // Confirm consistency: Export data first?
             if (lapRecords.length > 0) {
-                exportData();
+                // Archive before delete
+                const session = {
+                    id: Date.now(),
+                    date: new Date().toLocaleString(),
+                    fps: FPS,
+                    laps: [...lapRecords],
+                    totalTime: lapRecords[lapRecords.length - 1].totalTime
+                };
+                historyData.unshift(session);
+                localStorage.setItem('cutTimerHistory', JSON.stringify(historyData));
+                showHistory();
             }
 
+            // Logic Reset
             isRunning = false;
-            startTime = 0;
-            lapStartTime = 0;
-            totalTime = 0;
-            lapCount = 0;
+            startTime = 0; lapStartTime = 0; totalTime = 0; lapCount = 0;
             lapRecords = [];
-            localStorage.clear();
+            localStorage.removeItem('cutTimerState');
+            localStorage.removeItem('pauseStart');
 
             // UI Reset
             $('totalTime').textContent = '總計: 0 s 00';
@@ -419,18 +471,14 @@
         }
 
         function saveState() {
-            const state = {
-                startTime,
-                lapStartTime,
-                lapCount,
-                lapRecords,
-                FPS,
-                isRunning
-            };
+            const state = { startTime, lapStartTime, lapCount, lapRecords, FPS, isRunning };
             localStorage.setItem('cutTimerState', JSON.stringify(state));
         }
 
         function loadState() {
+            const historySaved = localStorage.getItem('cutTimerHistory');
+            if (historySaved) historyData = JSON.parse(historySaved);
+
             const saved = localStorage.getItem('cutTimerState');
             if (saved) {
                 const state = JSON.parse(saved);
@@ -439,159 +487,184 @@
                 lapCount = state.lapCount;
                 lapRecords = state.lapRecords || [];
                 FPS = state.FPS || 24;
-
-                // Restore FPS UI
                 changeFPS(FPS);
-
-                // Restore Laps UI
                 renderLaps();
 
-                // Check if it was running or we are resuming from a "closed tab" state
-                // If it was running when closed, the time logic will be skewed unless we treat the gap as a "pause".
-                // Let's assume auto-pause on close.
+                // Resume paused logic
                 isRunning = false;
-
-                // We need to calculate where we left off.
-                // Since we don't have a reliable "pauseStart" if the browser crashed...
-                // Let's just show the last known state strings if possible, or 0.
-                // Actually, if we have startTime, we can calculate.
-                // But if user opens it 3 days later, the timer will show 3 days!
-                // To prevent this massive jump, we force pause on load.
-                // And we assume the time we "saved" was the last valid time?
-                // "SaveState" happens on interaction.
-                // If it was running, we effectively "Pause" it at the moment of load? 
-                // No, better to pause it at the moment of last save? Hard to know when that was.
-                // Let's Keep it simple: Force Reset if data assumes running but it's been too long?
-                // No, just load data.
-
                 const pauseStart = localStorage.getItem('pauseStart');
-                if (pauseStart) {
-                    // Was already paused
-                } else {
-                    // Was running, so we treat "now" as the end of a session?
-                    // Or we just force pause at 'now' and let user resume? 
-                    // If we toggleTimer() now, it will look for pauseStart. 
-                    // We should set pauseStart to the timestamp of the last save? 
-                    // We don't have that.
-                    // WORKAROUND: Set pauseStart to Date.now() to prevent jump, assuming the user likely wasn't editing while the browser was closed.
+                if (!pauseStart && startTime) {
+                    // If wasn't cleanly paused, assume paused at load time
                     localStorage.setItem('pauseStart', Date.now());
                 }
             }
         }
 
-        function exportData() {
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM
-            csvContent += "卡號,單鏡時長,累計時間\n";
-            lapRecords.forEach(r => {
-                csvContent += `${r.lapNumber},${formatTime(r.lapTime)},${formatTime(r.totalTime)}\n`;
-            });
+        // --- History Logic ---
 
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            const date = new Date();
-            const timestamp = date.toISOString().replace(/[:.]/g, "-").slice(0, 19);
-            link.setAttribute("download", `cut_timer_export_${timestamp}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function showHistory() {
+            const list = $('historyList');
+            list.innerHTML = historyData.length === 0 ? '<div style="color:#666;text-align:center;padding:20px">尚無紀錄</div>' : '';
+
+            historyData.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'history-item';
+                el.innerHTML = `
+                <div class="history-info">
+                    <strong>${item.date}</strong>
+                    <span>${formatTime(item.totalTime)} (${item.laps.length} 卡)</span>
+                </div>
+                <div class="history-actions">
+                    <button class="btn btn-sm" onclick="copyCSV(${item.id})">複製</button>
+                    <button class="btn btn-sm" onclick="downloadCSV(${item.id})">下載 CSV</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteHistory(${item.id})">刪除</button>
+                </div>
+            `;
+                list.appendChild(el);
+            });
+            $('historyModal').classList.add('active');
         }
+
+        function closeHistory() {
+            $('historyModal').classList.remove('active');
+        }
+
+        function getCSV(id) {
+            const session = historyData.find(x => x.id === id);
+            if (!session) return null;
+            let csv = "卡號,單鏡時長,累計時間\n";
+            session.laps.forEach(r => {
+                csv += `${r.lapNumber},${formatTime(r.lapTime)},${formatTime(r.totalTime)}\n`;
+            });
+            return csv;
+        }
+
+        window.downloadCSV = function (id) {
+            const csv = getCSV(id);
+            if (!csv) return;
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            const session = historyData.find(x => x.id === id);
+            const name = session.date.replace(/[\/:\s]/g, '-');
+            link.download = `cut_timer_${name}.csv`;
+            link.click();
+        };
+
+        window.copyCSV = function (id) {
+            const csv = getCSV(id);
+            if (!csv) return;
+            navigator.clipboard.writeText(csv).then(() => alert('已複製 CSV 到剪貼簿'));
+        };
+
+        window.deleteHistory = function (id) {
+            if (confirm('確定刪除此紀錄?')) {
+                historyData = historyData.filter(x => x.id !== id);
+                localStorage.setItem('cutTimerHistory', JSON.stringify(historyData));
+                showHistory();
+            }
+        };
 
         // --- Interaction Logic ---
 
         // Keyboard
         document.addEventListener('keydown', e => {
-            if (e.code === 'Space' && !e.repeat) {
-                e.preventDefault(); // Prevent scrolling
-                toggleTimer();
-            }
+            if (e.code === 'Space' && !e.repeat) { e.preventDefault(); toggleTimer(); }
             else if (e.code === 'KeyZ') lap();
             else if (e.code === 'KeyR') resetTimer();
         });
 
-        // Mouse Drag Resize
-        const resizeBar = document.getElementById('resizeBar');
+        // Mouse Resize
         let isResizing = false;
-        resizeBar.addEventListener('mousedown', () => {
-            isResizing = true;
-            document.body.style.cursor = 'row-resize';
-        });
+        $('resizeBar').addEventListener('mousedown', () => { isResizing = true; document.body.style.cursor = 'row-resize'; });
         document.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
-            const containerRect = document.querySelector('.container').getBoundingClientRect();
-            // Calculate headers height to substract? Rough math:
-            const newHeight = e.clientY - containerRect.top - 200; // Offset
-            // Better:
-            // Main container padding top (20) + FPS (40) + Display (100) + Instructions (40) ~ 200
-            // Just let user set explicit height
-            // document.getElementById('lapRecords').style.maxHeight = `${Math.max(100, e.clientY - 300)}px`;
-            // Let's stick to the original easier logic relative to mouse
-            // The original logic was complex. Let's simplify:
-            // Set max-height directly.
-            // We just toggle a class or update style.
             lapContainer.style.maxHeight = `${Math.max(100, e.clientY - 200)}px`;
         });
         document.addEventListener('mouseup', () => { isResizing = false; document.body.style.cursor = 'default'; });
 
-        // --- Mobile Touch Logic ---
-        let longPressTimer;
-        const LONG_PRESS_DURATION = 800; // ms
+        // --- Mobile Touch Logic (Fix: Allow scrolling) ---
 
-        // We attach events to the BODY to catch full screen taps
-        document.body.addEventListener('touchstart', handleTouchStart, { passive: false });
-        document.body.addEventListener('touchend', handleTouchEnd, { passive: false });
-        document.body.addEventListener('contextmenu', e => e.preventDefault()); // Disable context menu on long press
-
-        let touchStartX = 0;
+        let touchStartX = 0, touchStartY = 0;
+        let isScrolling = false;
         let isLongPress = false;
+        let longPressTimer;
+        const LONG_PRESS_DURATION = 800;
+
+        // Attach to body but don't preventDefault blindly
+        document.body.addEventListener('touchstart', handleTouchStart, { passive: false });
+        document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
+        document.body.addEventListener('touchend', handleTouchEnd, { passive: false });
+        document.body.addEventListener('contextmenu', e => e.preventDefault());
 
         function handleTouchStart(e) {
-            if (e.target.tagName === 'BUTTON' || e.target.closest('.lap-records')) return; // Allow normal button clicks and scrolling
-            e.preventDefault();
+            if (e.target.tagName === 'BUTTON' || e.target.closest('.modal-content')) return;
 
-            touchStartX = e.touches[0].clientX;
-            const screenWidth = window.innerWidth;
-            const isLeft = touchStartX < screenWidth / 2;
-
-            // Visual Feedback
-            if (isLeft) {
-                $('touchLeft').classList.add('active-feedback');
-            } else {
-                $('touchRight').classList.add('active-feedback');
+            // If touching List, DO NOT preventDefault (allow native scroll)
+            // If touching empty space, preventDefault (prevent body bounce)
+            if (!e.target.closest('.lap-records')) {
+                e.preventDefault();
             }
 
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isScrolling = false;
             isLongPress = false;
+
+            // Visual Feedback
+            const isLeft = touchStartX < window.innerWidth / 2;
+            if (isLeft) $('touchLeft').classList.add('active-feedback');
+            else $('touchRight').classList.add('active-feedback');
+
             longPressTimer = setTimeout(() => {
-                isLongPress = true;
-                // Short vibration
-                if (navigator.vibrate) navigator.vibrate(50);
-                resetTimer();
-                // Clear feedback immediately
-                $('touchLeft').classList.remove('active-feedback');
-                $('touchRight').classList.remove('active-feedback');
+                if (!isScrolling) {
+                    isLongPress = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    resetTimer();
+                    clearFeedback();
+                }
             }, LONG_PRESS_DURATION);
         }
 
-        function handleTouchEnd(e) {
-            if (e.target.tagName === 'BUTTON' || e.target.closest('.lap-records')) return;
+        function handleTouchMove(e) {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('.modal-content')) return;
 
-            clearTimeout(longPressTimer);
-            $('touchLeft').classList.remove('active-feedback');
-            $('touchRight').classList.remove('active-feedback');
+            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+            const dx = Math.abs(e.touches[0].clientX - touchStartX);
 
-            if (!isLongPress) {
-                const screenWidth = window.innerWidth;
-                if (touchStartX < screenWidth / 2) {
-                    // Left Tap = Split
-                    lap();
-                } else {
-                    // Right Tap = Toggle
-                    toggleTimer();
-                }
+            // If moved significantly, it's a scroll
+            if (dy > 10 || dx > 10) {
+                isScrolling = true;
+                clearTimeout(longPressTimer);
+                clearFeedback();
             }
         }
 
-        // Init
+        function handleTouchEnd(e) {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('.modal-content')) return;
+
+            clearTimeout(longPressTimer);
+            clearFeedback();
+
+            // If it was a scroll or a long press, don't trigger Tap
+            if (isScrolling || isLongPress) return;
+
+            // It was a TAP!
+            // Prevent default click behavior to avoid ghost clicks if we allowed default in Start
+            // e.preventDefault(); 
+            // Actually, if we allowed scroll (default), we might get a click.
+            // We can just rely on this TouchEnd logic and ignore the Click event if it comes.
+
+            const isLeft = touchStartX < window.innerWidth / 2;
+            if (isLeft) lap();
+            else toggleTimer();
+        }
+
+        function clearFeedback() {
+            $('touchLeft').classList.remove('active-feedback');
+            $('touchRight').classList.remove('active-feedback');
+        }
+
         loadState();
     </script>
 
